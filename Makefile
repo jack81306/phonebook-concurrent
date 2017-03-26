@@ -15,7 +15,7 @@ ifeq ($(strip $(DEBUG)),1)
 CFLAGS_opt += -DDEBUG -g
 endif
 
-EXEC = phonebook_orig phonebook_opt
+EXEC = phonebook_orig phonebook_opt phonebook_pool
 GIT_HOOKS := .git/hooks/applied
 .PHONY: all
 all: $(GIT_HOOKS) $(EXEC)
@@ -29,13 +29,18 @@ SRCS_common = main.c
 tools/text_align: text_align.c tools/tool-text_align.c
 	$(CC) $(CFLAGS_common) $^ -o $@
 
+phonebook_pool: threadpool.c phonebook_opt.c phonebook_opt.h text_align.c
+	$(CC) $(CFLAGS_common) $(CFLAGS_opt) -DTHREADPOOL \
+		-DIMPL="\"phonebook_opt.h\"" -o $@ \
+		$(SRCS_common) phonebook_opt.c threadpool.c text_align.c
+
 phonebook_orig: $(SRCS_common) phonebook_orig.c phonebook_orig.h
 	$(CC) $(CFLAGS_common) $(CFLAGS_orig) \
 		-DIMPL="\"$@.h\"" -o $@ \
 		$(SRCS_common) $@.c
 
 phonebook_opt: $(SRCS_common) phonebook_opt.c phonebook_opt.h text_align.c
-	$(CC) $(CFLAGS_common) $(CFLAGS_opt) \
+	$(CC) $(CFLAGS_common) $(CFLAGS_opt)  -DOPT\
 		-DIMPL="\"$@.h\"" -o $@ \
 		$(SRCS_common) $@.c text_align.c
 
@@ -50,6 +55,9 @@ cache-test: $(EXEC)
 	perf stat --repeat 100 \
 		-e cache-misses,cache-references,instructions,cycles \
 		./phonebook_opt
+	perf stat --repeat 100 \
+		-e cache-misses,cache-references,instructions,cycles \
+		./phonebook_pool
 
 output.txt: cache-test calculate
 	./calculate
@@ -63,4 +71,4 @@ calculate: calculate.c
 .PHONY: clean
 clean:
 	$(RM) $(EXEC) *.o perf.* \
-	      	calculate orig.txt opt.txt output.txt runtime.png align.txt
+	      	calculate orig.txt opt.txt output.txt runtime.png align.txt alignTP.txt threadpool.txt

@@ -11,19 +11,30 @@
 
 #include IMPL
 
-#ifndef OPT
-#define OUTPUT_FILE "orig.txt"
 
-#else
+#ifdef OPT
 #include "text_align.h"
 #include "debug.h"
 #include <fcntl.h>
 #define ALIGN_FILE "align.txt"
 #define OUTPUT_FILE "opt.txt"
-
 #ifndef THREAD_NUM
 #define THREAD_NUM 4
 #endif
+
+#elif THREADPOOL
+#include "text_align.h"
+#include "debug.h"
+#include "threadpool.h"
+#include <fcntl.h>
+#define ALIGN_FILE "alignTP.txt"
+#define OUTPUT_FILE "threadpool.txt"
+#ifndef THREAD_NUM
+#define THREAD_NUM 4
+#endif
+
+#else
+#define OUTPUT_FILE "orig.txt"
 
 #endif
 
@@ -44,7 +55,7 @@ static double diff_in_second(struct timespec t1, struct timespec t2)
 
 int main(int argc, char *argv[])
 {
-#ifndef OPT
+#if !defined(OPT) && !defined(THREADPOOL)
     FILE *fp;
     int i = 0;
     char line[MAX_LAST_NAME_SIZE];
@@ -55,7 +66,7 @@ int main(int argc, char *argv[])
     double cpu_time1, cpu_time2,cpu_time3;
 
     /* File preprocessing */
-#ifndef OPT
+#if !defined(OPT) && !defined(THREADPOOL)
     /* check file opening */
     fp = fopen(DICT_FILE, "r");
     if (!fp) {
@@ -72,7 +83,7 @@ int main(int argc, char *argv[])
     entry *pHead, *e;
     printf("size of entry : %lu bytes\n", sizeof(entry));
 
-#if defined(OPT)
+#if defined(OPT) || defined(THREADPOOL)
     char *map;
     entry *entry_pool;
     pthread_t threads[THREAD_NUM];
@@ -93,6 +104,7 @@ int main(int argc, char *argv[])
         // Created by malloc, remeber to free them.
         thread_args[i] = createThread_arg(map + MAX_LAST_NAME_SIZE * i, map + file_size, i,
                                           THREAD_NUM, entry_pool + i);
+#ifdef OPT
     /* Deliver the jobs to all threads and wait for completing */
     clock_gettime(CLOCK_REALTIME, &mid);
     for (int i = 0; i < THREAD_NUM; i++)
@@ -100,7 +112,15 @@ int main(int argc, char *argv[])
 
     for (int i = 0; i < THREAD_NUM; i++)
         pthread_join(threads[i], NULL);
+#endif
+#ifdef THREADPOOL
+    struct threadpool_t *pool=threadpool_create(THREAD_NUM,20,0);
+    clock_gettime(CLOCK_REALTIME, &mid);
+    for(int i=0; i<THREAD_NUM; i++)
+        threadpool_add(pool,(void *)&append,(void *)thread_args[i],0);
 
+    threadpool_destroy(pool,1);
+#endif
     /* Connect the linked list of each thread */
     for (int i = 0; i < THREAD_NUM; i++) {
         if (i == 0) {
@@ -183,7 +203,7 @@ int main(int argc, char *argv[])
     show_entrylen(pHead);
 
     /* Release memory */
-#ifndef OPT
+#if !defined(OPT) && !defined(THREADPOOL)
     while (pHead) {
         e = pHead;
         pHead = pHead->pNext;
