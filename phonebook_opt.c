@@ -81,6 +81,16 @@ void show_entry(entry *pHead)
     }
 }
 
+void show_entrylen(entry *pHead)
+{
+    int i=0;
+    while (pHead) {
+        i++;
+        pHead = pHead->pNext;
+    }
+    printf("entry amount:%d",i);
+}
+
 static double diff_in_second(struct timespec t1, struct timespec t2)
 {
     struct timespec diff;

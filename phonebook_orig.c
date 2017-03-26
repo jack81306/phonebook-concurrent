@@ -26,3 +26,21 @@ entry *append(char lastName[], entry *e)
 
     return e;
 }
+
+void show_entry(entry *pHead)
+{
+    while (pHead) {
+        printf("%s", pHead->lastName);
+        pHead = pHead->pNext;
+    }
+}
+
+void show_entrylen(entry *pHead)
+{
+    int i=0;
+    while (pHead) {
+        i++;
+        pHead = pHead->pNext;
+    }
+    printf("entry amount:%d",i);
+}

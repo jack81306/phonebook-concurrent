@@ -104,11 +104,11 @@ int main(int argc, char *argv[])
     /* Connect the linked list of each thread */
     for (int i = 0; i < THREAD_NUM; i++) {
         if (i == 0) {
-            pHead = thread_args[i]->lEntry_head->pNext;
+            pHead = thread_args[i]->lEntry_head;
             DEBUG_LOG("Connect %d head string %s %p\n", i,
                       pHead->lastName, thread_args[i]->data_begin);
         } else {
-            e->pNext = thread_args[i]->lEntry_head->pNext;
+            e->pNext = thread_args[i]->lEntry_head;
             DEBUG_LOG("Connect %d head string %s %p\n", i,
                       e->pNext->lastName, thread_args[i]->data_begin);
         }
@@ -174,6 +174,7 @@ int main(int argc, char *argv[])
 
     printf("execution time of append() : %lf sec\n", cpu_time1);
     printf("execution time of findName() : %lf sec\n", cpu_time2);
+    show_entrylen(pHead);
 
     /* Release memory */
 #ifndef OPT
