@@ -24,6 +24,29 @@ entry *findName(char lastname[], entry *pHead)
     return NULL;
 }
 
+int deleteName(char lastname[],entry **pHead)
+{
+    entry *tmp,*dad;
+    if(strcasecmp((*pHead)->lastName,lastname)==0) {
+        tmp=*pHead;
+        (*pHead)=(*pHead)->pNext;
+        free(tmp);
+        return 1;
+    }
+    tmp=(*pHead)->pNext;
+    dad=*pHead;
+    size_t len=strlen(lastname);
+    while (tmp) {
+        if (strcasecmp(lastname, tmp->lastName) == 0
+                &&(tmp->lastName[len]=='\n'||tmp->lastName[len]=='\0')) {
+            dad->pNext=tmp->pNext;
+            return 1;
+        }
+        tmp = tmp->pNext;
+        dad = dad->pNext;
+    }
+    return 0;
+}
 thread_arg *createThread_arg(char *data_begin, char *data_end,
                              int threadID, int numOfThread,
                              entry *entryPool)

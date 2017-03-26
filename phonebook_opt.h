@@ -29,6 +29,7 @@ typedef struct __PHONE_BOOK_ENTRY {
 } entry;
 
 entry *findName(char lastname[], entry *pHead);
+int deleteName(char lastname[],entry **pHead);
 
 typedef struct _thread_argument {
     char *data_begin;

@@ -16,6 +16,29 @@ entry *findName(char lastname[], entry *pHead)
     return NULL;
 }
 
+int deleteName(char lastname[],entry **pHead)
+{
+    entry *tmp,*dad;
+    if(strcasecmp((*pHead)->lastName,lastname)==0) {
+        tmp=*pHead;
+        (*pHead)=(*pHead)->pNext;
+        free(tmp);
+        return 1;
+    }
+    tmp=(*pHead)->pNext;
+    dad=*pHead;
+    while (tmp) {
+        if (strcasecmp(lastname, tmp->lastName) == 0) {
+            dad->pNext=tmp->pNext;
+            free(tmp);
+            return 1;
+        }
+        tmp = tmp->pNext;
+        dad = dad->pNext;
+    }
+    return 0;
+}
+
 entry *append(char lastName[], entry *e)
 {
     /* allocate memory for the new entry and put lastName */
